@@ -11,6 +11,15 @@ export default function App() {
   const [erroreConnessione, setErroreConnessione] = useState('');
   const ws = useRef(null);
 
+  const mostraNotificaSoglia = (rumore, soglia) => {
+    Alert.alert(
+      "Allarme Rumore Elevato",
+      `Livello rumore rilevato: ${rumore} dB(A)\nSoglia impostata: ${soglia} dB(A)\n\nIl filtro acustico è stato attivato automaticamente.`,
+      [{ text: "OK" }],
+      { cancelable: false }
+    );
+  };
+
   const toggleConnessione = () => {
     if (!connesso) {
       setErroreConnessione('');
@@ -24,6 +33,27 @@ export default function App() {
           soglia: soglia,
           filtroAttivo: filtroAttivo
         }));
+      };
+
+      ws.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.tipo === 'notifica') {
+            // Gestione notifica superamento soglia
+            mostraNotificaSoglia(data.rumore, data.soglia);
+            if (!filtroAttivo) {
+              setFiltroAttivo(true);
+            }
+          } else {
+            // Aggiornamento normale dei dati
+            if (data.db !== undefined) setDbValue(data.db);
+            if (data.testo !== undefined) setTestoRilevato(data.testo);
+            if (data.filtroAttivo !== undefined) setFiltroAttivo(data.filtroAttivo);
+          }
+        } catch (error) {
+          console.error('Errore parsing messaggio:', error);
+        }
       };
 
       ws.current.onerror = (error) => {
