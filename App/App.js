@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Button, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Text, Button, ScrollView, Alert, TextInput } from 'react-native';
 import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   const [connesso, setConnesso] = useState(false);
@@ -9,7 +10,33 @@ export default function App() {
   const [testoRilevato, setTestoRilevato] = useState('');
   const [soglia, setSoglia] = useState(85);
   const [erroreConnessione, setErroreConnessione] = useState('');
+  const [nomeUtente, setNomeUtente] = useState('');
+  const [nomeSalvato, setNomeSalvato] = useState(false);
   const ws = useRef(null);
+
+  useEffect(() => {
+    const caricaNome = async () => {
+      try {
+        const nome = await AsyncStorage.getItem('nomeUtente');
+        if (nome) {
+          setNomeUtente(nome);
+          setNomeSalvato(true);
+        }
+      } catch (e) {
+        console.error("Errore nel recupero del nome utente:", e);
+      }
+    };
+    caricaNome();
+  }, []);
+
+  const salvaNome = async () => {
+    try {
+      await AsyncStorage.setItem('nomeUtente', nomeUtente);
+      setNomeSalvato(true);
+    } catch (e) {
+      console.error("Errore nel salvataggio del nome:", e);
+    }
+  };
 
   const mostraAvvisoConnessione = () => {
     Alert.alert(
@@ -30,31 +57,38 @@ export default function App() {
 
   const toggleConnessione = () => {
     if (!connesso) {
+      if (!nomeUtente.trim()) {
+        Alert.alert("Nome richiesto", "Inserisci il tuo nome prima di connetterti.");
+        return;
+      }
+
       setErroreConnessione('');
-      ws.current = new WebSocket('ws://192.168.1.12:8765');
+      ws.current = new WebSocket('ws://192.168.1.19:8765');
 
       ws.current.onopen = () => {
         console.log('Connessione WebSocket aperta');
         setConnesso(true);
-        // Invia lo stato iniziale
         ws.current.send(JSON.stringify({
           soglia: soglia,
-          filtroAttivo: filtroAttivo
+          filtroAttivo: filtroAttivo,
+          nomeUtente: nomeUtente
         }));
+        salvaNome();
       };
 
       ws.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-
           if (data.tipo === 'notifica') {
-            // Gestione notifica superamento soglia
             mostraNotificaSoglia(data.rumore, data.soglia);
             if (!filtroAttivo) {
               setFiltroAttivo(true);
+              ws.current.send(JSON.stringify({
+                filtroAttivo: true,
+                azione: 'automatica'
+              }));
             }
           } else {
-            // Aggiornamento normale dei dati
             if (data.db !== undefined) setDbValue(data.db);
             if (data.testo !== undefined) setTestoRilevato(data.testo);
             if (data.filtroAttivo !== undefined) setFiltroAttivo(data.filtroAttivo);
@@ -108,6 +142,18 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      {!connesso && (
+        <View style={styles.nomeInputContainer}>
+          <Text style={styles.label}>Inserisci il tuo nome:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Es. Mario Rossi"
+            value={nomeUtente}
+            onChangeText={setNomeUtente}
+          />
+        </View>
+      )}
+
       <Button
         title={connesso ? 'Disconnetti' : 'Connetti'}
         onPress={toggleConnessione}
@@ -119,6 +165,10 @@ export default function App() {
           {connesso ? 'Connesso' : 'Disconnesso'}
         </Text>
       </Text>
+
+      {connesso && nomeUtente ? (
+        <Text style={styles.nomeUtente}>Utente: {nomeUtente}</Text>
+      ) : null}
 
       {erroreConnessione ? (
         <Text style={styles.errore}>Errore: {erroreConnessione}</Text>
@@ -176,11 +226,30 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 40,
   },
+  nomeInputContainer: {
+    marginBottom: 15,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    marginTop: 5,
+  },
   status: {
     fontSize: 18,
     textAlign: 'center',
     marginVertical: 10,
     fontWeight: '500',
+  },
+  nomeUtente: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#444',
+    marginBottom: 10,
+    fontWeight: '600',
   },
   errore: {
     fontSize: 14,
