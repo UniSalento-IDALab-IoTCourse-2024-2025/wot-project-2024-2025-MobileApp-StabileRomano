@@ -11,6 +11,14 @@ export default function App() {
   const [erroreConnessione, setErroreConnessione] = useState('');
   const ws = useRef(null);
 
+  const mostraAvvisoConnessione = () => {
+    Alert.alert(
+      "Problema di connessione",
+      "Impossibile connettersi al server. Verifica che:\n\n1. Il server Python sia avviato\n2. Le cuffie siano accese\n3. Entrambi i dispositivi siano sulla stessa rete Wi-Fi\n4. L'indirizzo IP sia corretto",
+      [{ text: "OK" }]
+    );
+  };
+
   const mostraNotificaSoglia = (rumore, soglia) => {
     Alert.alert(
       "Allarme Rumore Elevato",
@@ -160,3 +168,67 @@ export default function App() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 20,
+    paddingTop: 40,
+  },
+  status: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginVertical: 10,
+    fontWeight: '500',
+  },
+  errore: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginVertical: 5,
+    color: 'red',
+    fontWeight: '500',
+  },
+  sogliaContainer: {
+    marginTop: 25,
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  infoBox: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    minHeight: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  label: {
+    fontWeight: '600',
+    marginBottom: 8,
+    fontSize: 16,
+    color: '#333',
+  },
+  value: {
+    fontSize: 16,
+    color: '#666',
+  },
+  warning: {
+    color: 'red',
+    fontWeight: '600',
+    marginTop: 5,
+  },
+  scrollView: {
+    maxHeight: 100,
+  },
+});
