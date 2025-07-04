@@ -35,6 +35,8 @@ Il progetto è suddiviso in più componenti, ciascuno con il proprio repository:
 
 - **STT-Broadcast** – Monitoraggio rumore e riconoscimento vocale → [GitHub Repo](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-STT-Broadcast-StabileRomano.git)
 - **TTS-Receiver** – Ricezione e sintesi vocale del testo in arrivo → [GitHub Repo](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-TTS-Receiver-StabileRomano.git)
+  
+Inoltre è possibile accedere alla presentazione del progetto al seguente [link](https://unisalento-idalab-iotcourse-2024-2025.github.io/wot-project-presentation-StabileRomano/)
 
 ---
 
